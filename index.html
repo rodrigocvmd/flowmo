@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foco Simplificado</title>
+    <title>Foco</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -48,7 +48,7 @@
             transition: opacity 0.3s ease;
             z-index: 50;
         }
-        
+
         #day-focus-period-header-wrapper.show-tooltip-on-hover:hover+#day-focus-period-message {
             opacity: 1;
             transform: scale(1) translateX(-50%);
@@ -89,7 +89,7 @@
                 <p class="text-md text-gray-300">Pausa projetada: <span id="rest-preview"
                         class="font-semibold text-md text-teal-300">0m 0s</span></p>
             </div>
-            
+
             <!-- Barra de Progresso da Sessão (escondida por padrão) -->
             <div id="session-progress-container" class="w-full space-y-2 !mt-4 hidden">
                 <div class="flex justify-between items-center text-md font-medium text-gray-300">
@@ -97,10 +97,10 @@
                     <span id="session-progress-text"></span>
                 </div>
                 <!-- ATUALIZADO: Adicionado 'relative' e o 'session-expected-indicator' (Request 1) -->
-                <div class="w-full bg-gray-700 rounded-full h-2.5 relative"> 
+                <div class="w-full bg-gray-700 rounded-full h-2.5 relative">
                     <div id="session-progress-bar" class="bg-teal-600 h-2.5 rounded-full" style="width: 0%"></div>
                     <div id="session-expected-indicator" class="absolute top-0 h-full w-1.5 bg-gray-300 rounded-full"
-                                style="left: 0%; display: none;"></div>
+                        style="left: 0%; display: none;"></div>
                 </div>
             </div>
             <!-- Fim da Barra de Progresso da Sessão -->
@@ -135,7 +135,8 @@
             <div id="idle-controls" class="space-y-6">
 
                 <div class="space-y-2">
-                    <label for="min-focus-hr" class="block text-md text-center font-medium text-gray-300 !mb-5">Tempo de foco
+                    <label for="min-focus-hr" class="block text-md text-center font-medium text-gray-300 !mb-5">Tempo de
+                        foco
                         mínimo
                         (opcional):</label>
                     <div class="flex gap-2">
@@ -160,16 +161,22 @@
                             <div class="flex items-center gap-2"> <!-- Grupo à direita -->
                                 <span id="day-progress-text"></span> <!-- Texto de progresso -->
                                 <!-- Botão de edição movido para cá -->
-                                <button id="edit-day-goal-btn" title="Editar Meta" class="btn bg-gray-700 hover:bg-gray-600 p-1.5 rounded-md hidden">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="pointer-events-none">
-                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                                <button id="edit-day-goal-btn" title="Editar Meta"
+                                    class="btn bg-gray-700 hover:bg-gray-600 p-1.5 rounded-md hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                        viewBox="0 0 16 16" class="pointer-events-none">
+                                        <path
+                                            d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                        <path fill-rule="evenodd"
+                                            d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
                                     </svg>
                                 </button>
                             </div>
                         </div>
                         <div class="w-full bg-gray-700 rounded-full h-2.5 relative">
                             <div id="day-progress-bar" class="bg-teal-600 h-2.5 rounded-full" style="width: 0%"></div>
-                            <div id="day-expected-indicator" class="absolute top-0 h-full w-1.5 bg-gray-300 rounded-full"
+                            <div id="day-expected-indicator"
+                                class="absolute top-0 h-full w-1.5 bg-gray-300 rounded-full"
                                 style="left: 0%; display: none;"></div>
                         </div>
                     </div>
@@ -211,30 +218,38 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label for="day-fp-start-time"
-                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Início</label> <!-- Adicionado text-center -->
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Início</label>
+                                    <!-- Adicionado text-center -->
                                     <!-- Alterado de type="time" para type="text" e adicionado pattern, placeholder e class -->
-                                    <input type="text" id="day-fp-start-time" placeholder="hh:mm" pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
+                                    <input type="text" id="day-fp-start-time" placeholder="hh:mm"
+                                        pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm time-input">
                                 </div>
                                 <div>
                                     <label for="day-fp-end-time"
-                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Fim</label> <!-- Adicionado text-center -->
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Fim</label>
+                                    <!-- Adicionado text-center -->
                                     <!-- Alterado de type="time" para type="text" e adicionado pattern, placeholder e class -->
-                                    <input type="text" id="day-fp-end-time" placeholder="hh:mm" pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
+                                    <input type="text" id="day-fp-end-time" placeholder="hh:mm"
+                                        pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm time-input">
                                 </div>
                                 <div>
                                     <label for="day-fp-break-time"
-                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Pausa</label> <!-- Adicionado text-center -->
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Pausa</label>
+                                    <!-- Adicionado text-center -->
                                     <!-- Alterado de type="time" para type="text" e adicionado pattern, placeholder e class -->
-                                    <input type="text" id="day-fp-break-time" placeholder="hh:mm" pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
+                                    <input type="text" id="day-fp-break-time" placeholder="hh:mm"
+                                        pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm time-input">
                                 </div>
                                 <div>
                                     <label for="day-fp-return-time"
-                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Retorno</label> <!-- Adicionado text-center -->
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Retorno</label>
+                                    <!-- Adicionado text-center -->
                                     <!-- Alterado de type="time" para type="text" e adicionado pattern, placeholder e class -->
-                                    <input type="text" id="day-fp-return-time" placeholder="hh:mm" pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
+                                    <input type="text" id="day-fp-return-time" placeholder="hh:mm"
+                                        pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm time-input">
                                 </div>
                             </div>
@@ -336,14 +351,14 @@
         const dayProgressContainer = document.getElementById('day-progress-container');
         const dayProgressText = document.getElementById('day-progress-text');
         const dayProgressBar = document.getElementById('day-progress-bar');
-        
+
         // --- NOVAS Referências para a barra de sessão ---
         const sessionProgressContainer = document.getElementById('session-progress-container');
         const sessionProgressText = document.getElementById('session-progress-text');
         const sessionProgressBar = document.getElementById('session-progress-bar');
-        
+
         // ATUALIZADO (Request 1)
-        const sessionExpectedIndicator = document.getElementById('session-expected-indicator'); 
+        const sessionExpectedIndicator = document.getElementById('session-expected-indicator');
 
         const dayExpectedIndicator = document.getElementById('day-expected-indicator');
         const dayFocusPeriodHeaderWrapper = document.getElementById('day-focus-period-header-wrapper');
@@ -413,7 +428,7 @@
                     }
                 }
                 // Retorna o valor original se já estiver formatado (HH:MM) ou se for inválido
-                return value.includes(':') ? value : ''; 
+                return value.includes(':') ? value : '';
             };
 
             // Aplica a formatação ao carregar os valores
@@ -484,7 +499,7 @@
             const pad = (n) => String(n).padStart(2, '0');
             return h > 0 ? `${pad(h)}:${pad(m)}:${pad(ss)}` : `${pad(m)}:${pad(ss)}`;
         };
-        
+
         const formatTimeShort = (sec) => {
             if (sec < 0) sec = 0;
             const totalMinutes = Math.floor(sec / 60);
@@ -521,7 +536,7 @@
             } else {
                 editDayGoalBtn.classList.add('hidden');
             }
-            
+
             // A lógica de exibição do progresso foi removida daqui
             // A função updateDayProgressBar() cuida da barra
         }
@@ -540,20 +555,20 @@
             const dayTask = tasks.find(t => t.id === 'day_goal');
             if (dayTask && dayTask.proposedTime > 0) {
                 const totalProposedTime = dayTask.proposedTime * 60;
-                
+
                 // CÁLCULO ATUALIZADO (Request 2 & 3)
                 let currentTotalDedicated = dayTask.dedicatedTime;
                 if (state === 'focusing') {
                     // Soma o tempo base (de sessões anteriores) + o foco atual + a pausa projetada
                     currentTotalDedicated += focusSeconds + calculateRestTime(focusSeconds);
                 }
-                
+
                 const percentage = Math.min((currentTotalDedicated / totalProposedTime) * 100, 100);
                 const progressText = `${formatTime(currentTotalDedicated)} / ${formatTime(totalProposedTime)}`;
-                
+
                 // Atualiza a barra de progresso IDLE (tela inicial)
                 // (A visibilidade dela é controlada pelo updateUI, que a esconde durante o foco)
-                dayProgressContainer.style.display = 'block'; 
+                dayProgressContainer.style.display = 'block';
                 dayProgressBar.style.width = `${percentage}%`;
                 dayProgressText.textContent = progressText;
 
@@ -588,7 +603,7 @@
                 // goalRemainingIndicator.style.display = 'none'; // REMOVIDO
                 sessionTaskIndicator.style.display = 'none';
                 sessionProgressContainer.style.display = 'none'; // Esconde barra de sessão
-                
+
                 // Sempre mostrar modo Dia
                 dayModeContainer.style.display = 'block';
                 renderDayGoal();
@@ -598,9 +613,9 @@
                     dayFocusPeriodHeader.style.pointerEvents = 'auto';
                     dayFocusPeriodHeader.style.opacity = '1';
                     dayFocusPeriodHeaderWrapper.classList.remove('show-tooltip-on-hover');
-                    
+
                     // ATUALIZADO (Request 3): Chama o cálculo imediatamente ao exibir
-                    calculateAndShowExpectedProgress(); 
+                    calculateAndShowExpectedProgress();
                 } else {
                     dayFocusPeriodHeader.style.pointerEvents = 'none';
                     dayFocusPeriodHeader.style.opacity = '0.5';
@@ -610,7 +625,7 @@
                     sessionExpectedIndicator.style.display = 'none'; // ATUALIZADO (Request 1)
                     dayFocusPeriodHeaderWrapper.classList.add('show-tooltip-on-hover');
                 }
-                
+
             } else {
                 idleControls.classList.add('hidden');
                 sessionControls.classList.remove('hidden');
@@ -620,7 +635,7 @@
                     statusText.textContent = isCountdown ? 'Foco mínimo em andamento...' : 'Tempo extra de foco...';
                     // sessionTaskIndicator.textContent = `Focando em: Meta do Dia`; // REMOVIDO
                     sessionTaskIndicator.style.display = 'none'; // Esconde o texto
-                    
+
                     // ATUALIZADO: Mostra a barra de progresso da sessão
                     const dayTask = tasks.find(t => t.id === 'day_goal');
                     if (dayTask && dayTask.proposedTime > 0) {
@@ -717,7 +732,7 @@
                     updateGoalIndicator();
                     // ATUALIZADO: Atualiza a barra de progresso da sessão a cada tick
                     // (Isso só será visível se a meta for atingida durante o foco)
-                    updateDayProgressBar(); 
+                    updateDayProgressBar();
                 }
 
             } else if (state === 'resting') {
@@ -917,7 +932,7 @@
         function calculateAndShowExpectedProgress() {
             const settings = dayFocusPeriodSettings;
             // ATUALIZADO (Request 1): Controla ambos os indicadores
-            const indicators = [dayExpectedIndicator, sessionExpectedIndicator]; 
+            const indicators = [dayExpectedIndicator, sessionExpectedIndicator];
 
             if (!settings.start || !settings.end) {
                 indicators.forEach(ind => ind.style.display = 'none');
@@ -929,7 +944,7 @@
                 if (!timeStr) return null;
                 const [hours, minutes] = timeStr.split(':').map(Number);
                 // ATUALIZADO: Verificação se o split falhou (ex: "1700")
-                if (isNaN(hours) || isNaN(minutes)) return null; 
+                if (isNaN(hours) || isNaN(minutes)) return null;
                 const date = new Date();
                 date.setHours(hours, minutes, 0, 0);
                 return date;
@@ -1001,19 +1016,19 @@
             // 1. O usuário digitou HH:MM corretamente
             if (value.match(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)) {
                 formattedValue = value;
-            
-            // 2. O usuário digitou HHMM
+
+                // 2. O usuário digitou HHMM
             } else if (digits.length === 4) {
                 const hours = digits.substring(0, 2);
                 const minutes = digits.substring(2, 4);
                 if (parseInt(hours, 10) < 24 && parseInt(minutes, 10) < 60) {
                     formattedValue = `${hours}:${minutes}`;
                 }
-            
-            // 3. O usuário digitou H ou HH (Nova regra)
+
+                // 3. O usuário digitou H ou HH (Nova regra)
             } else if (digits.length === 1 || digits.length === 2) {
                 // Só formata se o input for *apenas* os dígitos da hora.
-                if (value === digits) { 
+                if (value === digits) {
                     const hours = parseInt(digits, 10);
                     if (hours < 24) {
                         const paddedHours = String(hours).padStart(2, '0');
@@ -1022,7 +1037,7 @@
                 }
                 // Se for "19:" (inválido), `value !== digits`, e o campo será limpo.
             }
-            
+
             input.value = formattedValue; // Define o valor no input
 
             // Salva o estado formatado
@@ -1035,7 +1050,7 @@
 
         [dayFpStartTime, dayFpEndTime, dayFpBreakTime, dayFpReturnTime].forEach(input => {
             // REMOVIDO o 'change' listener
-            
+
             // O 'blur' agora formata, salva E recalcula o indicador
             input.addEventListener('blur', formatTimeInputOnBlur);
         });
