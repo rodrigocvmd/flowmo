@@ -81,13 +81,32 @@
                 00:00
             </div>
             <div id="session-task-indicator" class="mt-3 text-lg text-cyan-300 min-h-[20px]"></div>
-            <div id="goal-remaining-indicator" class="text-lg mt-3 text-gray-200"></div>
+
+            <!-- Posição Invertida (Request 1) -->
             <div id="rest-preview-container" class="mt-2 h-6 flex items-center justify-center gap-2"
                 style="display: none;">
                 <div id="status-indicator" class="w-3 h-3 rounded-full transition-colors flex-shrink-0"></div>
                 <p class="text-md text-gray-300">Pausa projetada: <span id="rest-preview"
                         class="font-semibold text-md text-teal-300">0m 0s</span></p>
             </div>
+            
+            <!-- Barra de Progresso da Sessão (escondida por padrão) -->
+            <div id="session-progress-container" class="w-full space-y-2 !mt-4 hidden">
+                <div class="flex justify-between items-center text-md font-medium text-gray-300">
+                    <span>Progresso</span>
+                    <span id="session-progress-text"></span>
+                </div>
+                <!-- ATUALIZADO: Adicionado 'relative' e o 'session-expected-indicator' (Request 1) -->
+                <div class="w-full bg-gray-700 rounded-full h-2.5 relative"> 
+                    <div id="session-progress-bar" class="bg-teal-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    <div id="session-expected-indicator" class="absolute top-0 h-full w-1.5 bg-gray-300 rounded-full"
+                                style="left: 0%; display: none;"></div>
+                </div>
+            </div>
+            <!-- Fim da Barra de Progresso da Sessão -->
+
+            <!-- <div id="goal-remaining-indicator" class="text-lg mt-3 text-gray-200"></div> --> <!-- REMOVIDO -->
+
         </div>
 
         <!-- Controles Principais -->
@@ -184,7 +203,7 @@
                             </div>
                         </div>
                         <div id="day-focus-period-message"
-                            class="absolute -top-8 left-1/2 -translate-x-1/2 w-max bg-gray-700 text-white text-xs rounded py-1 px-2 opacity-0 scale-0 transition-all duration-200 ease-in-out pointer-events-none">
+                            class="absolute -top-8 left-1/2 -translate-x-1.2 w-max bg-gray-700 text-white text-xs rounded py-1 px-2 opacity-0 scale-0 transition-all duration-200 ease-in-out pointer-events-none">
                             Defina uma meta
                         </div>
 
@@ -287,7 +306,7 @@
         const restPreview = document.getElementById('rest-preview');
         const statusIndicator = document.getElementById('status-indicator');
         const sessionTaskIndicator = document.getElementById('session-task-indicator');
-        const goalRemainingIndicator = document.getElementById('goal-remaining-indicator');
+        // const goalRemainingIndicator = document.getElementById('goal-remaining-indicator'); // REMOVIDO
         const sessionControls = document.getElementById('session-controls');
         const idleControls = document.getElementById('idle-controls');
         const endFocusBtn = document.getElementById('end-focus-btn');
@@ -317,6 +336,15 @@
         const dayProgressContainer = document.getElementById('day-progress-container');
         const dayProgressText = document.getElementById('day-progress-text');
         const dayProgressBar = document.getElementById('day-progress-bar');
+        
+        // --- NOVAS Referências para a barra de sessão ---
+        const sessionProgressContainer = document.getElementById('session-progress-container');
+        const sessionProgressText = document.getElementById('session-progress-text');
+        const sessionProgressBar = document.getElementById('session-progress-bar');
+        
+        // ATUALIZADO (Request 1)
+        const sessionExpectedIndicator = document.getElementById('session-expected-indicator'); 
+
         const dayExpectedIndicator = document.getElementById('day-expected-indicator');
         const dayFocusPeriodHeaderWrapper = document.getElementById('day-focus-period-header-wrapper');
         const dayFocusPeriodHeader = document.getElementById('day-focus-period-header');
@@ -372,10 +400,28 @@
             appMode = 'day'; // Sempre modo 'day'
 
             dayFocusPeriodSettings = saved.dayFocusPeriodSettings || { start: '', end: '', break: '', return: '' };
-            document.getElementById('day-fp-start-time').value = dayFocusPeriodSettings.start;
-            document.getElementById('day-fp-end-time').value = dayFocusPeriodSettings.end;
-            document.getElementById('day-fp-break-time').value = dayFocusPeriodSettings.break;
-            document.getElementById('day-fp-return-time').value = dayFocusPeriodSettings.return;
+
+            // ATUALIZADO (Request 2): Helper para formatar o tempo ao carregar
+            const formatLoadedTime = (value) => {
+                if (!value) return '';
+                let digits = value.replace(/\D/g, ''); // Remove não-dígitos
+                if (digits.length === 4) {
+                    const hours = digits.substring(0, 2);
+                    const minutes = digits.substring(2, 4);
+                    if (parseInt(hours, 10) < 24 && parseInt(minutes, 10) < 60) {
+                        return `${hours}:${minutes}`; // Retorna formatado
+                    }
+                }
+                // Retorna o valor original se já estiver formatado (HH:MM) ou se for inválido
+                return value.includes(':') ? value : ''; 
+            };
+
+            // Aplica a formatação ao carregar os valores
+            dayFpStartTime.value = formatLoadedTime(dayFocusPeriodSettings.start);
+            dayFpEndTime.value = formatLoadedTime(dayFocusPeriodSettings.end);
+            dayFpBreakTime.value = formatLoadedTime(dayFocusPeriodSettings.break);
+            dayFpReturnTime.value = formatLoadedTime(dayFocusPeriodSettings.return);
+
             document.getElementById('day-focus-period-config').classList.add('hidden');
             document.getElementById('day-focus-period-arrow').classList.remove('rotate-180');
 
@@ -413,6 +459,9 @@
             if (['focusing', 'resting'].includes(state)) {
                 worker.postMessage({ command: 'start' });
             }
+
+            // ATUALIZADO (Request 3): Chama o cálculo imediatamente no load
+            calculateAndShowExpectedProgress();
         }
 
         // --- Funções de Cálculo e Formatação ---
@@ -490,14 +539,33 @@
         function updateDayProgressBar() {
             const dayTask = tasks.find(t => t.id === 'day_goal');
             if (dayTask && dayTask.proposedTime > 0) {
-                dayProgressContainer.style.display = 'block';
                 const totalProposedTime = dayTask.proposedTime * 60;
-                const totalDedicatedTime = dayTask.dedicatedTime;
-                const percentage = Math.min((totalDedicatedTime / totalProposedTime) * 100, 100);
+                
+                // CÁLCULO ATUALIZADO (Request 2 & 3)
+                let currentTotalDedicated = dayTask.dedicatedTime;
+                if (state === 'focusing') {
+                    // Soma o tempo base (de sessões anteriores) + o foco atual + a pausa projetada
+                    currentTotalDedicated += focusSeconds + calculateRestTime(focusSeconds);
+                }
+                
+                const percentage = Math.min((currentTotalDedicated / totalProposedTime) * 100, 100);
+                const progressText = `${formatTime(currentTotalDedicated)} / ${formatTime(totalProposedTime)}`;
+                
+                // Atualiza a barra de progresso IDLE (tela inicial)
+                // (A visibilidade dela é controlada pelo updateUI, que a esconde durante o foco)
+                dayProgressContainer.style.display = 'block'; 
                 dayProgressBar.style.width = `${percentage}%`;
-                dayProgressText.textContent = `${formatTime(totalDedicatedTime)} / ${formatTime(totalProposedTime)}`;
+                dayProgressText.textContent = progressText;
+
+                // ATUALIZADO: Atualiza a barra de progresso da SESSÃO
+                // (A visibilidade dela é controlada pelo updateUI, que a mostra during foco)
+                sessionProgressBar.style.width = `${percentage}%`;
+                sessionProgressText.textContent = progressText;
+
             } else {
+                // Esconde ambas as barras se não houver meta
                 dayProgressContainer.style.display = 'none';
+                sessionProgressContainer.style.display = 'none';
             }
         }
 
@@ -510,15 +578,16 @@
             restPendingSummary.style.display = 'none';
             statusIndicator.classList.remove('bg-red-500', 'bg-green-500');
             skipRestBtn.classList.remove('sm:col-span-2');
-            goalRemainingIndicator.style.display = 'block';
+            // goalRemainingIndicator.style.display = 'block'; // REMOVIDO
 
 
             if (state === 'idle') {
                 statusText.textContent = 'Pronto para iniciar uma sessão de foco?';
                 sessionControls.classList.add('hidden');
                 idleControls.classList.remove('hidden');
-                goalRemainingIndicator.style.display = 'none';
+                // goalRemainingIndicator.style.display = 'none'; // REMOVIDO
                 sessionTaskIndicator.style.display = 'none';
+                sessionProgressContainer.style.display = 'none'; // Esconde barra de sessão
                 
                 // Sempre mostrar modo Dia
                 dayModeContainer.style.display = 'block';
@@ -529,31 +598,48 @@
                     dayFocusPeriodHeader.style.pointerEvents = 'auto';
                     dayFocusPeriodHeader.style.opacity = '1';
                     dayFocusPeriodHeaderWrapper.classList.remove('show-tooltip-on-hover');
+                    
+                    // ATUALIZADO (Request 3): Chama o cálculo imediatamente ao exibir
+                    calculateAndShowExpectedProgress(); 
                 } else {
                     dayFocusPeriodHeader.style.pointerEvents = 'none';
                     dayFocusPeriodHeader.style.opacity = '0.5';
                     dayFocusPeriodConfig.classList.add('hidden');
                     dayFocusPeriodArrow.classList.remove('rotate-180');
                     dayExpectedIndicator.style.display = 'none';
+                    sessionExpectedIndicator.style.display = 'none'; // ATUALIZADO (Request 1)
                     dayFocusPeriodHeaderWrapper.classList.add('show-tooltip-on-hover');
                 }
                 
             } else {
                 idleControls.classList.add('hidden');
                 sessionControls.classList.remove('hidden');
-                sessionTaskIndicator.style.display = 'block';
+                // sessionTaskIndicator.style.display = 'block'; // Comentado/Removido
 
                 if (state === 'focusing') {
                     statusText.textContent = isCountdown ? 'Foco mínimo em andamento...' : 'Tempo extra de foco...';
-                    sessionTaskIndicator.textContent = `Focando em: Meta do Dia`;
+                    // sessionTaskIndicator.textContent = `Focando em: Meta do Dia`; // REMOVIDO
+                    sessionTaskIndicator.style.display = 'none'; // Esconde o texto
+                    
+                    // ATUALIZADO: Mostra a barra de progresso da sessão
+                    const dayTask = tasks.find(t => t.id === 'day_goal');
+                    if (dayTask && dayTask.proposedTime > 0) {
+                        sessionProgressContainer.style.display = 'block';
+                        updateDayProgressBar(); // Garante que está atualizada
+                    } else {
+                        sessionProgressContainer.style.display = 'none';
+                    }
+
                     endFocusBtn.style.display = 'block';
                     restPreviewContainer.style.display = 'flex';
                     if (isCountdown) statusIndicator.classList.add('bg-red-500'); else statusIndicator.classList.add('bg-green-500');
                     updateGoalIndicator();
                 } else if (state === 'rest_pending') {
                     statusText.textContent = 'Foco finalizado!';
+                    sessionTaskIndicator.style.display = 'block'; // Mostra novamente para a pausa
                     sessionTaskIndicator.textContent = `Tempo de pausa`;
-                    goalRemainingIndicator.textContent = '';
+                    sessionProgressContainer.style.display = 'none'; // Esconde barra de sessão
+                    // goalRemainingIndicator.textContent = ''; // REMOVIDO
                     timerDisplay.classList.add('text-teal-400');
                     restPendingSummary.style.display = 'block';
                     startRestBtn.style.display = 'block';
@@ -568,7 +654,9 @@
                     `;
                 } else if (state === 'resting') {
                     statusText.textContent = 'Pausa. Relaxe e recarregue.';
-                    goalRemainingIndicator.textContent = '';
+                    sessionProgressContainer.style.display = 'none'; // Esconde barra de sessão
+                    sessionTaskIndicator.style.display = 'none'; // Esconde texto na pausa
+                    // goalRemainingIndicator.textContent = ''; // REMOVIDO
                     endRestBtn.style.display = 'block';
                     endRestBtn.classList.add('sm:col-span-2');
                     timerDisplay.classList.add('text-teal-400');
@@ -625,7 +713,12 @@
 
                 timerDisplay.textContent = formatTime(isCountdown ? seconds : focusSeconds);
                 restPreview.textContent = formatTimeShort(isCountdown ? 0 : calculateRestTime(focusSeconds));
-                if (state === 'focusing') updateGoalIndicator();
+                if (state === 'focusing') {
+                    updateGoalIndicator();
+                    // ATUALIZADO: Atualiza a barra de progresso da sessão a cada tick
+                    // (Isso só será visível se a meta for atingida durante o foco)
+                    updateDayProgressBar(); 
+                }
 
             } else if (state === 'resting') {
                 seconds--;
@@ -823,10 +916,11 @@
 
         function calculateAndShowExpectedProgress() {
             const settings = dayFocusPeriodSettings;
-            const indicator = dayExpectedIndicator;
+            // ATUALIZADO (Request 1): Controla ambos os indicadores
+            const indicators = [dayExpectedIndicator, sessionExpectedIndicator]; 
 
             if (!settings.start || !settings.end) {
-                indicator.style.display = 'none';
+                indicators.forEach(ind => ind.style.display = 'none');
                 return;
             }
 
@@ -834,6 +928,8 @@
             const parseTime = (timeStr) => {
                 if (!timeStr) return null;
                 const [hours, minutes] = timeStr.split(':').map(Number);
+                // ATUALIZADO: Verificação se o split falhou (ex: "1700")
+                if (isNaN(hours) || isNaN(minutes)) return null; 
                 const date = new Date();
                 date.setHours(hours, minutes, 0, 0);
                 return date;
@@ -844,9 +940,17 @@
             const t_break = parseTime(settings.break);
             const t_return = parseTime(settings.return);
 
+            // ATUALIZADO: Verificação robusta se os tempos são válidos
+            if (!t_start || !t_end) {
+                indicators.forEach(ind => ind.style.display = 'none');
+                return;
+            }
+
             if (now < t_start || now > t_end) {
-                indicator.style.left = (now < t_start ? '0%' : '100%');
-                indicator.style.display = 'block';
+                indicators.forEach(ind => {
+                    ind.style.left = (now < t_start ? '0%' : '100%');
+                    ind.style.display = 'block';
+                });
                 return;
             }
 
@@ -856,7 +960,7 @@
             }
 
             if (totalWorkDuration <= 0) {
-                indicator.style.display = 'none';
+                indicators.forEach(ind => ind.style.display = 'none');
                 return;
             }
 
@@ -874,44 +978,65 @@
             }
 
             const expectedPercentage = Math.min((elapsedWorkTime / totalWorkDuration) * 100, 100);
-            indicator.style.left = `${expectedPercentage}%`;
-            indicator.style.display = 'block';
+            indicators.forEach(ind => {
+                ind.style.left = `${expectedPercentage}%`;
+                ind.style.display = 'block';
+            });
         }
 
-        setInterval(calculateAndShowExpectedProgress, 10000); // every 10 seconds
+        setInterval(calculateAndShowExpectedProgress, 10000); // Mantém a atualização periódica
 
         dayFocusPeriodHeader.addEventListener('click', () => {
             dayFocusPeriodConfig.classList.toggle('hidden');
             dayFocusPeriodArrow.classList.toggle('rotate-180');
         });
 
-        // Função para formatar o input de tempo (HHMM -> HH:MM)
+        // ATUALIZADO: Função para formatar o input de tempo (HHMM -> HH:MM, H/HH -> H/HH:00)
         function formatTimeInputOnBlur(e) {
             const input = e.target;
-            let value = input.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+            let value = input.value.trim(); // Pega o valor digitado
+            let formattedValue = ''; // Valor padrão se inválido
+            let digits = value.replace(/\D/g, ''); // Pega apenas os dígitos
 
-            if (value.length === 4) {
-                const hours = value.substring(0, 2);
-                const minutes = value.substring(2, 4);
-
-                // Validação básica se HH e MM estão em ranges plausíveis antes de formatar
+            // 1. O usuário digitou HH:MM corretamente
+            if (value.match(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)) {
+                formattedValue = value;
+            
+            // 2. O usuário digitou HHMM
+            } else if (digits.length === 4) {
+                const hours = digits.substring(0, 2);
+                const minutes = digits.substring(2, 4);
                 if (parseInt(hours, 10) < 24 && parseInt(minutes, 10) < 60) {
-                    input.value = `${hours}:${minutes}`;
+                    formattedValue = `${hours}:${minutes}`;
                 }
+            
+            // 3. O usuário digitou H ou HH (Nova regra)
+            } else if (digits.length === 1 || digits.length === 2) {
+                // Só formata se o input for *apenas* os dígitos da hora.
+                if (value === digits) { 
+                    const hours = parseInt(digits, 10);
+                    if (hours < 24) {
+                        const paddedHours = String(hours).padStart(2, '0');
+                        formattedValue = `${paddedHours}:00`;
+                    }
+                }
+                // Se for "19:" (inválido), `value !== digits`, e o campo será limpo.
             }
-            // Se o valor já estiver formatado (ex: "17:30"), o replace vai gerar "1730"
-            // e o IF vai reformatar para "17:30".
-            // Se o valor for inválido após a formatação (ex: "99:99"), 
-            // o 'pattern' do HTML vai invalidar o campo.
+            
+            input.value = formattedValue; // Define o valor no input
+
+            // Salva o estado formatado
+            dayFocusPeriodSettings[input.id.split('-')[2]] = formattedValue;
+            saveState();
+
+            // Chama o cálculo imediatamente
+            calculateAndShowExpectedProgress();
         }
 
         [dayFpStartTime, dayFpEndTime, dayFpBreakTime, dayFpReturnTime].forEach(input => {
-            input.addEventListener('change', (e) => {
-                dayFocusPeriodSettings[e.target.id.split('-')[2]] = e.target.value;
-                saveState();
-            });
-
-            // NOVO: Adiciona o listener 'blur' (ao sair do campo) para formatar
+            // REMOVIDO o 'change' listener
+            
+            // O 'blur' agora formata, salva E recalcula o indicador
             input.addEventListener('blur', formatTimeInputOnBlur);
         });
 
