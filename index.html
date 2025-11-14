@@ -94,7 +94,11 @@
             <div id="session-progress-container" class="w-full space-y-2 !mt-4 hidden">
                 <div class="flex justify-between items-center text-md font-medium text-gray-300">
                     <span>Progresso</span>
-                    <span id="session-progress-text"></span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="session-progress-current"></span>
+                        <span>/</span>
+                        <span id="session-progress-goal"></span>
+                    </div>
                 </div>
                 <!-- ATUALIZADO: Adicionado 'relative' e o 'session-expected-indicator' (Request 1) -->
                 <div class="w-full bg-gray-700 rounded-full h-2.5 relative">
@@ -157,9 +161,16 @@
 
                     <div id="day-progress-container" class="space-y-2 !mt-4">
                         <div class="flex justify-between items-center text-md font-medium text-gray-300">
-                            <span>Progresso</span> <!-- Título à esquerda -->
+                            <div class="flex items-center gap-1.5">
+                                <span id="day-progress-label">Progresso</span>
+                                <span id="day-goal-completed-check" class="hidden text-green-400 font-bold">✓</span>
+                            </div>
                             <div class="flex items-center gap-2"> <!-- Grupo à direita -->
-                                <span id="day-progress-text"></span> <!-- Texto de progresso -->
+                                <div class="flex items-baseline gap-1">
+                                    <span id="day-progress-current"></span>
+                                    <span>/</span>
+                                    <span id="day-progress-goal"></span>
+                                </div>
                                 <!-- Botão de edição movido para cá -->
                                 <button id="edit-day-goal-btn" title="Editar Meta"
                                     class="btn bg-gray-700 hover:bg-gray-600 p-1.5 rounded-md hidden">
@@ -349,12 +360,16 @@
 
         //--- Day Mode Refs ---
         const dayProgressContainer = document.getElementById('day-progress-container');
-        const dayProgressText = document.getElementById('day-progress-text');
+        const dayProgressCurrent = document.getElementById('day-progress-current');
+        const dayProgressGoal = document.getElementById('day-progress-goal');
         const dayProgressBar = document.getElementById('day-progress-bar');
+        const dayProgressLabel = document.getElementById('day-progress-label');
+        const dayGoalCompletedCheck = document.getElementById('day-goal-completed-check');
 
         // --- NOVAS Referências para a barra de sessão ---
         const sessionProgressContainer = document.getElementById('session-progress-container');
-        const sessionProgressText = document.getElementById('session-progress-text');
+        const sessionProgressCurrent = document.getElementById('session-progress-current');
+        const sessionProgressGoal = document.getElementById('session-progress-goal');
         const sessionProgressBar = document.getElementById('session-progress-bar');
 
         // ATUALIZADO (Request 1)
@@ -564,23 +579,48 @@
                 }
 
                 const percentage = Math.min((currentTotalDedicated / totalProposedTime) * 100, 100);
-                const progressText = `${formatTime(currentTotalDedicated)} / ${formatTime(totalProposedTime)}`;
 
                 // Atualiza a barra de progresso IDLE (tela inicial)
-                // (A visibilidade dela é controlada pelo updateUI, que a esconde durante o foco)
                 dayProgressContainer.style.display = 'block';
                 dayProgressBar.style.width = `${percentage}%`;
-                dayProgressText.textContent = progressText;
+                dayProgressCurrent.textContent = formatTime(currentTotalDedicated);
+                dayProgressGoal.textContent = formatTime(totalProposedTime);
 
                 // ATUALIZADO: Atualiza a barra de progresso da SESSÃO
-                // (A visibilidade dela é controlada pelo updateUI, que a mostra during foco)
                 sessionProgressBar.style.width = `${percentage}%`;
-                sessionProgressText.textContent = progressText;
+                sessionProgressCurrent.textContent = formatTime(currentTotalDedicated);
+                sessionProgressGoal.textContent = formatTime(totalProposedTime);
+
+                // Verifica se a meta foi atingida
+                if (currentTotalDedicated >= totalProposedTime && totalProposedTime > 0) {
+                    dayProgressLabel.classList.add('line-through');
+                    dayGoalCompletedCheck.classList.remove('hidden');
+                    dayProgressGoal.classList.add('line-through');
+                    sessionProgressGoal.classList.add('line-through');
+                } else {
+                    dayProgressLabel.classList.remove('line-through');
+                    dayGoalCompletedCheck.classList.add('hidden');
+                    dayProgressGoal.classList.remove('line-through');
+                    sessionProgressGoal.classList.remove('line-through');
+                }
 
             } else {
                 // Esconde ambas as barras se não houver meta
                 dayProgressContainer.style.display = 'none';
                 sessionProgressContainer.style.display = 'none';
+                // Garante que o estado de "concluído" seja resetado se a meta for removida
+                if (dayProgressLabel) dayProgressLabel.classList.remove('line-through');
+                if (dayGoalCompletedCheck) dayGoalCompletedCheck.classList.add('hidden');
+                if (dayProgressCurrent) dayProgressCurrent.textContent = '';
+                if (dayProgressGoal) {
+                    dayProgressGoal.textContent = '';
+                    dayProgressGoal.classList.remove('line-through');
+                }
+                if (sessionProgressCurrent) sessionProgressCurrent.textContent = '';
+                if (sessionProgressGoal) {
+                    sessionProgressGoal.textContent = '';
+                    sessionProgressGoal.classList.remove('line-through');
+                }
             }
         }
 
