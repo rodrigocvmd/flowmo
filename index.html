@@ -117,7 +117,9 @@
         <div id="main-controls" class="space-y-4 !mt-4">
             <!-- Controles em Sessão -->
             <div id="session-controls" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-
+                <button id="quick-break-btn"
+                    class="btn bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg sm:col-span-2">Pausa
+                    Rápida</button>
                 <button id="end-focus-btn"
                     class="btn bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg sm:col-span-2">Finalizar
                     Foco</button>
@@ -275,6 +277,37 @@
         </div>
     </div>
 
+    <!-- Modal de Pausa Rápida -->
+    <div id="quick-break-modal"
+        class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm text-center">
+            <div id="quick-break-initial-state">
+                <h3 class="text-lg font-bold text-white mb-4">Pausa Rápida</h3>
+                <p class="text-gray-300 mb-6">Selecione a duração:</p>
+                <div class="flex justify-center gap-2 mb-6">
+                    <button data-time="60"
+                        class="quick-break-duration-btn btn bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">1
+                        min</button>
+                    <button data-time="120"
+                        class="quick-break-duration-btn btn bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">2
+                        min</button>
+                    <button data-time="180"
+                        class="quick-break-duration-btn btn bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">3
+                        min</button>
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button id="return-from-quick-break-btn"
+                        class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Retornar</button>
+                </div>
+            </div>
+            <div id="quick-break-timer-state" class="hidden">
+                <div id="quick-break-timer-display" class="timer-display text-5xl font-bold text-white mb-4"></div>
+                <button id="return-to-focus-btn"
+                    class="btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg mt-4">Retornar à sessão de foco</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Confirmação -->
     <div id="confirmation-modal"
         class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden opacity-0">
@@ -385,6 +418,17 @@
         const dayFpBreakTime = document.getElementById('day-fp-break-time');
         const dayFpReturnTime = document.getElementById('day-fp-return-time');
 
+        // --- Quick Break Refs ---
+        const quickBreakBtn = document.getElementById('quick-break-btn');
+        const quickBreakModal = document.getElementById('quick-break-modal');
+        const quickBreakInitialState = document.getElementById('quick-break-initial-state');
+        const quickBreakTimerState = document.getElementById('quick-break-timer-state');
+        const quickBreakTimerDisplay = document.getElementById('quick-break-timer-display');
+        const returnFromQuickBreakBtn = document.getElementById('return-from-quick-break-btn');
+        const returnToFocusBtn = document.getElementById('return-to-focus-btn');
+        const quickBreakDurationBtns = document.querySelectorAll('.quick-break-duration-btn');
+
+
         // --- Melhoria de UX: Selecionar texto ao focar ---
         document.querySelectorAll('input[type=text], input[type=number]').forEach(input => {
             input.addEventListener('focus', () => input.select());
@@ -398,6 +442,9 @@
         let tasks = []; // Usado apenas para a meta do dia
         let currentTaskId = null; // Será 'day_goal'
         let sessionFocusTime = 0;
+        let quickBreakSeconds = 180;
+        let quickBreakTimerId = null;
+
 
         let dayFocusPeriodSettings = {
             start: '',
@@ -455,7 +502,7 @@
             document.getElementById('day-focus-period-config').classList.add('hidden');
             document.getElementById('day-focus-period-arrow').classList.remove('rotate-180');
 
-            if (saved.state === 'idle' || saved.state === 'paused') { // Tratar estado pausado como idle ao recarregar
+            if (saved.state === 'idle' || saved.state === 'paused' || saved.state === 'quick_break_pending' || saved.state === 'quick_breaking') { // Tratar estado pausado como idle ao recarregar
                 resetToIdle();
                 return;
             }
@@ -626,7 +673,7 @@
 
         // --- Funções de UI e Estado ---
         function updateUI() {
-            const allSessionButtons = [endFocusBtn, startRestBtn, skipRestBtn, endRestBtn];
+            const allSessionButtons = [endFocusBtn, startRestBtn, skipRestBtn, endRestBtn, quickBreakBtn];
             allSessionButtons.forEach(btn => btn.style.display = 'none');
 
             restPreviewContainer.style.display = 'none';
@@ -676,6 +723,14 @@
                     // sessionTaskIndicator.textContent = `Focando em: Meta do Dia`; // REMOVIDO
                     sessionTaskIndicator.style.display = 'none'; // Esconde o texto
 
+                    // Mostra o botão de pausa rápida se o tempo de foco mínimo foi ultrapassado
+                    if ((!isCountdown && minFocusSeconds > 0) || (minFocusSeconds === 0)) {
+                        quickBreakBtn.style.display = 'block';
+                    } else {
+                        quickBreakBtn.style.display = 'none';
+                    }
+
+
                     // ATUALIZADO: Mostra a barra de progresso da sessão
                     const dayTask = tasks.find(t => t.id === 'day_goal');
                     if (dayTask && dayTask.proposedTime > 0) {
@@ -721,6 +776,10 @@
 
         function resetToIdle() {
             worker.postMessage({ command: 'stop' });
+            if (quickBreakTimerId) {
+                clearInterval(quickBreakTimerId);
+                quickBreakTimerId = null;
+            }
             state = 'idle';
             seconds = 0;
             focusSeconds = 0;
@@ -728,6 +787,7 @@
             isCountdown = false;
             currentTaskId = null;
             sessionFocusTime = 0;
+            quickBreakSeconds = 180;
             timerDisplay.textContent = formatTime(0);
             timerDisplay.classList.remove('text-teal-400');
             focusProjectionDisplay.innerHTML = '';
@@ -752,9 +812,6 @@
         function timerTick() {
             if (state === 'focusing') {
                 focusSeconds++;
-                if (focusSeconds === 5400 && synth) { // 90 minutes
-                    synth.triggerAttackRelease("C5", "0.5");
-                }
                 if (isCountdown) {
                     seconds--;
                     if (seconds <= 0) {
@@ -883,7 +940,7 @@
         });
 
         confirmEndFocusBtn.addEventListener('click', () => {
-            earlyEndModal.classList.add('opacity-0');
+            earlyEnd_modal.classList.add('opacity-0');
             setTimeout(() => earlyEndModal.classList.add('hidden'), 300);
 
             sessionFocusTime = focusSeconds;
@@ -902,6 +959,67 @@
         skipRestBtn.addEventListener('click', () => endSessionAndReset(false));
         endRestBtn.addEventListener('click', () => endSessionAndReset(false));
         startFocusBtn.addEventListener('click', startFocus);
+
+        // --- Event Listeners for Quick Break ---
+        quickBreakBtn.addEventListener('click', () => {
+            worker.postMessage({ command: 'stop' });
+            state = 'quick_break_pending';
+            quickBreakModal.classList.remove('hidden');
+            setTimeout(() => quickBreakModal.classList.remove('opacity-0'), 10);
+        });
+
+        returnFromQuickBreakBtn.addEventListener('click', () => {
+            state = 'focusing';
+            quickBreakModal.classList.add('opacity-0');
+            setTimeout(() => quickBreakModal.classList.add('hidden'), 300);
+            worker.postMessage({ command: 'start' });
+            updateUI();
+        });
+
+        quickBreakDurationBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                quickBreakSeconds = parseInt(e.target.dataset.time, 10);
+                initializeAudio();
+                state = 'quick_breaking';
+                quickBreakInitialState.style.display = 'none';
+                quickBreakTimerState.style.display = 'block';
+                returnToFocusBtn.classList.remove('hidden');
+                quickBreakTimerDisplay.textContent = formatTime(quickBreakSeconds);
+                quickBreakTimerId = setInterval(quickBreakTimerTick, 1000);
+            });
+        });
+
+        returnToFocusBtn.addEventListener('click', () => {
+            clearInterval(quickBreakTimerId);
+            quickBreakTimerId = null;
+            state = 'focusing';
+            quickBreakModal.classList.add('opacity-0');
+            setTimeout(() => {
+                quickBreakModal.classList.add('hidden');
+                // Reset modal state
+                quickBreakInitialState.style.display = 'block';
+                quickBreakTimerState.style.display = 'none';
+                returnToFocusBtn.classList.add('hidden');
+                quickBreakTimerDisplay.style.display = 'block';
+                quickBreakSeconds = 180;
+            }, 300);
+            worker.postMessage({ command: 'start' });
+            updateUI();
+        });
+
+
+        function quickBreakTimerTick() {
+            quickBreakSeconds--;
+            quickBreakTimerDisplay.textContent = formatTime(quickBreakSeconds);
+
+            if (quickBreakSeconds <= 0) {
+                clearInterval(quickBreakTimerId);
+                quickBreakTimerId = null;
+                if (synth) synth.triggerAttackRelease("C5", "0.5");
+                quickBreakTimerDisplay.style.display = 'none';
+                returnToFocusBtn.textContent = 'Retornar ao Foco';
+            }
+        }
 
         setDayGoalForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -922,8 +1040,8 @@
             updateUI(); // Isso chamará renderDayGoal e atualizará a visibilidade do botão
             saveState();
         });
-
-        resetDayBtn.addEventListener('click', () => {
+		
+		        resetDayBtn.addEventListener('click', () => {
             confirmationModal.classList.remove('hidden');
             setTimeout(() => confirmationModal.classList.remove('opacity-0'), 10);
         });
