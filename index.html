@@ -203,7 +203,7 @@
                     </div>
 
                     <form id="set-day-goal-form" class="space-y-3">
-                        <label class="block text-md font-medium text-gray-300 text-center">Definir meta:</label>
+                        <label class="block text-md font-medium text-gray-300 text-center">Meta do dia:</label>
                         <div class="grid grid-cols-3 gap-3">
                             <input type="number" id="day-goal-hr" placeholder="Hr"
                                 class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
@@ -279,7 +279,7 @@
                 </div>
 
                 <!-- Container Modo Semana -->
-                <div id="week-mode-container" class="space-y-4 !mt-8 pt-8 border-t border-gray-700">
+                <div id="week-mode-container" class="space-y-4 !mt-4 pt-2 border-t border-gray-700">
                     <!-- Weekly Progress Bar -->
                     <div id="week-progress-container" class="space-y-2 hidden">
                         <div class="flex justify-between items-center text-md font-medium text-gray-300">
@@ -316,7 +316,7 @@
 
                     <!-- Weekly Goal Form -->
                     <form id="set-week-goal-form" class="space-y-3">
-                        <label class="block text-md font-medium text-gray-300 text-center">Meta Semanal:</label>
+                        <label class="block text-md font-medium text-gray-300 text-center">Meta da Semana:</label>
                         <div class="grid grid-cols-3 gap-3">
                             <input type="number" id="week-goal-hr" placeholder="Hr"
                                 class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
@@ -378,9 +378,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-full justify-center flex !mt-0">
+                <div class="w-full justify-center flex !mt-0 gap-4">
                     <button id="reset-day-btn"
-                        class="btn w-1/3 text-center bg-gray-600 hover:bg-gray-500 text-orange-300 font-semibold !mt-3 py-2 px-4 rounded-lg text-sm">Resetar
+                        class="btn w-1/3 text-center bg-gray-600 hover:bg-gray-500 text-orange-300 font-semibold !mt-3 py-2 px-4 rounded-lg text-sm">Novo
+                        Dia</button>
+                    <button id="reset-week-btn"
+                        class="btn w-1/3 text-center bg-gray-600 hover:bg-gray-500 text-purple-300 font-semibold !mt-3 py-2 px-4 rounded-lg text-sm">Nova
+                        Semana</button>
                 </div>
             </div>
         </div>
@@ -390,29 +394,12 @@
     <div id="quick-break-modal"
         class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden opacity-0">
         <div class="bg-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm text-center">
-            <div id="quick-break-initial-state">
+            <div id="quick-break-timer-state">
                 <h3 class="text-lg font-bold text-white mb-4">Pausa Rápida</h3>
-                <p class="text-gray-300 mb-6">Selecione a duração:</p>
-                <div class="flex justify-center gap-2 mb-6">
-                    <button data-time="60"
-                        class="quick-break-duration-btn btn bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">1
-                        min</button>
-                    <button data-time="120"
-                        class="quick-break-duration-btn btn bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">2
-                        min</button>
-                    <button data-time="180"
-                        class="quick-break-duration-btn btn bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">3
-                        min</button>
-                </div>
-                <div class="flex justify-center gap-4">
-                    <button id="return-from-quick-break-btn"
-                        class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Retornar</button>
-                </div>
-            </div>
-            <div id="quick-break-timer-state" class="hidden">
-                <div id="quick-break-timer-display" class="timer-display text-5xl font-bold text-white mb-4"></div>
+                <div id="quick-break-timer-display" class="timer-display text-5xl font-bold text-white mb-4">03:00</div>
                 <button id="return-to-focus-btn"
-                    class="btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg mt-4">Retornar à sessão de foco</button>
+                    class="btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg mt-4">Retornar
+                    à sessão de foco</button>
             </div>
         </div>
     </div>
@@ -486,6 +473,7 @@
         const minFocusMinInput = document.getElementById('min-focus-min');
         const startFocusBtn = document.getElementById('start-focus-btn');
         const resetDayBtn = document.getElementById('reset-day-btn');
+        const resetWeekBtn = document.getElementById('reset-week-btn');
         const confirmationModal = document.getElementById('confirmation-modal');
         const cancelResetBtn = document.getElementById('cancel-reset-btn');
         const confirmResetBtn = document.getElementById('confirm-reset-btn');
@@ -554,12 +542,9 @@
         // --- Quick Break Refs ---
         const quickBreakBtn = document.getElementById('quick-break-btn');
         const quickBreakModal = document.getElementById('quick-break-modal');
-        const quickBreakInitialState = document.getElementById('quick-break-initial-state');
         const quickBreakTimerState = document.getElementById('quick-break-timer-state');
         const quickBreakTimerDisplay = document.getElementById('quick-break-timer-display');
-        const returnFromQuickBreakBtn = document.getElementById('return-from-quick-break-btn');
         const returnToFocusBtn = document.getElementById('return-to-focus-btn');
-        const quickBreakDurationBtns = document.querySelectorAll('.quick-break-duration-btn');
 
 
         // --- Melhoria de UX: Selecionar texto ao focar ---
@@ -577,6 +562,7 @@
         let sessionFocusTime = 0;
         let quickBreakSeconds = 180;
         let quickBreakTimerId = null;
+        let alarmLoopId = null;
 
 
         let dayFocusPeriodSettings = {
@@ -597,6 +583,23 @@
         let synth;
         function initializeAudio() {
             if (!synth) try { synth = new Tone.Synth().toDestination(); } catch (e) { console.error("Audio context failed.", e); }
+        }
+
+        function startAlarmLoop() {
+            if (alarmLoopId) return;
+            // Play immediately
+            if (synth) synth.triggerAttackRelease("C5", "0.2");
+            // Loop every 1 second
+            alarmLoopId = setInterval(() => {
+                if (synth) synth.triggerAttackRelease("C5", "0.2");
+            }, 1000);
+        }
+
+        function stopAlarmLoop() {
+            if (alarmLoopId) {
+                clearInterval(alarmLoopId);
+                alarmLoopId = null;
+            }
         }
 
         // --- Funções de Persistência (LocalStorage) ---
@@ -942,6 +945,9 @@
             timerDisplay.classList.remove('text-teal-400');
             focusProjectionDisplay.innerHTML = '';
             updateUI();
+            renderWeekGoal();
+            updateWeekProgressBar();
+            calculateWeekExpectation();
         }
 
         function endSessionAndReset(playAlarm = true) {
@@ -1113,44 +1119,36 @@
         // --- Event Listeners for Quick Break ---
         quickBreakBtn.addEventListener('click', () => {
             worker.postMessage({ command: 'stop' });
-            state = 'quick_break_pending';
+            state = 'quick_breaking';
+            quickBreakSeconds = 180; // Fixed 3 minutes
+            
+            // UI Updates
             quickBreakModal.classList.remove('hidden');
             setTimeout(() => quickBreakModal.classList.remove('opacity-0'), 10);
+            // Removed initial state toggle since it's deleted
+            // quickBreakTimerState is visible by default in the modal body
+            
+            initializeAudio();
+            quickBreakTimerDisplay.textContent = formatTime(quickBreakSeconds);
+            
+            if (quickBreakTimerId) clearInterval(quickBreakTimerId);
+            quickBreakTimerId = setInterval(quickBreakTimerTick, 1000);
         });
 
-        returnFromQuickBreakBtn.addEventListener('click', () => {
-            state = 'focusing';
-            quickBreakModal.classList.add('opacity-0');
-            setTimeout(() => quickBreakModal.classList.add('hidden'), 300);
-            worker.postMessage({ command: 'start' });
-            updateUI();
-        });
-
-        quickBreakDurationBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                quickBreakSeconds = parseInt(e.target.dataset.time, 10);
-                initializeAudio();
-                state = 'quick_breaking';
-                quickBreakInitialState.style.display = 'none';
-                quickBreakTimerState.style.display = 'block';
-                returnToFocusBtn.classList.remove('hidden');
-                quickBreakTimerDisplay.textContent = formatTime(quickBreakSeconds);
-                quickBreakTimerId = setInterval(quickBreakTimerTick, 1000);
-            });
-        });
+        // Removed returnFromQuickBreakBtn listener (element deleted)
+        // Removed quickBreakDurationBtns listener (elements deleted)
 
         returnToFocusBtn.addEventListener('click', () => {
-            clearInterval(quickBreakTimerId);
-            quickBreakTimerId = null;
+            stopAlarmLoop();
+            if (quickBreakTimerId) {
+                clearInterval(quickBreakTimerId);
+                quickBreakTimerId = null;
+            }
             state = 'focusing';
             quickBreakModal.classList.add('opacity-0');
             setTimeout(() => {
                 quickBreakModal.classList.add('hidden');
-                // Reset modal state
-                quickBreakInitialState.style.display = 'block';
-                quickBreakTimerState.style.display = 'none';
-                returnToFocusBtn.classList.add('hidden');
-                quickBreakTimerDisplay.style.display = 'block';
+                // Reset default state
                 quickBreakSeconds = 180;
             }, 300);
             worker.postMessage({ command: 'start' });
@@ -1165,9 +1163,9 @@
             if (quickBreakSeconds <= 0) {
                 clearInterval(quickBreakTimerId);
                 quickBreakTimerId = null;
-                if (synth) synth.triggerAttackRelease("C5", "0.5");
-                quickBreakTimerDisplay.style.display = 'none';
-                returnToFocusBtn.textContent = 'Retornar ao Foco';
+                quickBreakTimerDisplay.textContent = "00:00";
+                // Start Looping Alarm
+                startAlarmLoop();
             }
         }
 
@@ -1191,27 +1189,45 @@
             saveState();
         });
 		
-		        resetDayBtn.addEventListener('click', () => {
+        let pendingResetAction = null;
+
+        resetDayBtn.addEventListener('click', () => {
+            pendingResetAction = 'day';
             confirmationModal.classList.remove('hidden');
             setTimeout(() => confirmationModal.classList.remove('opacity-0'), 10);
         });
+
+        resetWeekBtn.addEventListener('click', () => {
+            pendingResetAction = 'week';
+            confirmationModal.classList.remove('hidden');
+            setTimeout(() => confirmationModal.classList.remove('opacity-0'), 10);
+        });
+
         cancelResetBtn.addEventListener('click', () => {
             confirmationModal.classList.add('opacity-0');
             setTimeout(() => confirmationModal.classList.add('hidden'), 300);
+            pendingResetAction = null;
         });
+
         confirmResetBtn.addEventListener('click', () => {
-            // Archive day progress to week
-            const dayTask = tasks.find(t => t.id === 'day_goal');
-            if (dayTask) {
-                weekData.dedicated += dayTask.dedicatedTime || 0;
+            if (pendingResetAction === 'day') {
+                // Archive day progress to week
+                const dayTask = tasks.find(t => t.id === 'day_goal');
+                if (dayTask) {
+                    weekData.dedicated += dayTask.dedicatedTime || 0;
+                }
+                tasks = []; // Clear daily tasks
+            } else if (pendingResetAction === 'week') {
+                weekData.dedicated = 0;
+                weekData.goal = 0;
             }
 
-            tasks = []; // Clear daily tasks
             resetToIdle();
-            saveState(); // Save state with updated weekData and cleared tasks
+            saveState();
 
             confirmationModal.classList.add('opacity-0');
             setTimeout(() => confirmationModal.classList.add('hidden'), 300);
+            pendingResetAction = null;
         });
 
         function handleMinFocusInput() {
