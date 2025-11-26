@@ -65,21 +65,6 @@
 
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
 
-    <!-- User Auth UI -->
-    <div class="absolute top-4 right-4 flex items-center gap-3 z-10">
-        <div id="user-profile" class="hidden flex items-center gap-2 bg-gray-800 p-1 pr-3 rounded-full border border-gray-700">
-            <img id="user-avatar" src="" alt="User" class="w-8 h-8 rounded-full">
-            <span id="user-name" class="text-sm font-medium text-gray-300"></span>
-        </div>
-        <button id="login-btn" class="btn bg-white text-gray-900 hover:bg-gray-100 font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
-            Login
-        </button>
-        <button id="logout-btn" class="hidden btn bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-2 px-4 rounded-lg text-sm">
-            Sair
-        </button>
-    </div>
-
     <div
         class="relative theMainBox w-full max-w-md mx-auto p-4 sm:p-6 md:p-7 bg-gray-800 rounded-2xl shadow-2xl space-y-6 md:space-y-8">
 
@@ -393,6 +378,8 @@
                         </div>
                     </div>
                 </div>
+
+               
                 <div class="w-full justify-center flex !mt-0 gap-4">
                     <button id="reset-day-btn"
                         class="btn w-1/3 text-center bg-gray-600 hover:bg-gray-500 text-orange-300 font-semibold !mt-3 py-2 px-4 rounded-lg text-sm">Novo
@@ -400,6 +387,39 @@
                     <button id="reset-week-btn"
                         class="btn w-1/3 text-center bg-gray-600 hover:bg-gray-500 text-purple-300 font-semibold !mt-3 py-2 px-4 rounded-lg text-sm">Nova
                         Semana</button>
+                </div>
+                 <!-- Account Section (Collapsible) -->
+                <div id="account-section" class="space-y-2 !mt-10 pt-4 border-t border-gray-700">
+                     <div id="account-header"
+                        class="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-gray-700">
+                        <span class="text-base font-medium text-gray-300">Conta & Sincronização</span>
+                        <svg id="account-arrow"
+                            class="w-5 h-5 text-gray-400 ml-2 transform transition-transform" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+
+                    <div id="account-config" class="hidden p-4 bg-gray-900/50 rounded-lg space-y-4 text-center">
+                         <!-- Login Button (Visible when logged out) -->
+                        <button id="login-btn" class="w-full btn bg-white text-gray-900 hover:bg-gray-100 font-bold py-3 px-4 rounded-lg text-sm flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
+                            Entrar com Google
+                        </button>
+
+                        <!-- User Profile (Visible when logged in) -->
+                        <div id="user-profile" class="hidden flex flex-col items-center gap-3">
+                            <img id="user-avatar" src="" alt="User" class="w-16 h-16 rounded-full border-2 border-gray-600">
+                            <div class="text-center">
+                                <p id="user-name" class="text-lg font-medium text-white"></p>
+                                <p class="text-xs text-green-400 mt-1">● Sincronização Ativa</p>
+                            </div>
+                            <button id="logout-btn" class="w-full btn bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-900/50 font-medium py-2 px-4 rounded-lg text-sm mt-2">
+                                Sair da Conta
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -581,6 +601,16 @@
         const userName = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
+        
+        // Account Section Toggle
+        const accountHeader = document.getElementById('account-header');
+        const accountArrow = document.getElementById('account-arrow');
+        const accountConfig = document.getElementById('account-config');
+
+        accountHeader.addEventListener('click', () => {
+            accountConfig.classList.toggle('hidden');
+            accountArrow.classList.toggle('rotate-180');
+        });
 
         // --- Quick Break Refs ---
         const quickBreakBtn = document.getElementById('quick-break-btn');
@@ -798,9 +828,10 @@
                 // Update UI
                 userAvatar.src = user.photoURL || 'https://via.placeholder.com/32';
                 userName.textContent = user.displayName || user.email;
+                
+                // Toggle visibility in the new section
                 userProfile.classList.remove('hidden');
                 loginBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
                 
                 // Load data from cloud
                 loadFromCloud();
@@ -809,7 +840,6 @@
                 // Update UI
                 userProfile.classList.add('hidden');
                 loginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
                 
                 // Fallback to local storage (no action needed as it's default)
             }
@@ -821,6 +851,11 @@
                     console.log("Logged in");
                 }).catch((error) => {
                     console.error("Login failed", error);
+                    if (error.code === 'auth/operation-not-supported-in-this-environment' || window.location.protocol === 'file:') {
+                        alert("Erro de Login: O login com Google não funciona quando o arquivo é aberto diretamente (protocolo 'file://').\n\nPor favor, use um servidor local (ex: VS Code Live Server ou 'python -m http.server') para acessar via 'http://localhost'.");
+                    } else {
+                        alert("Erro no login: " + error.message);
+                    }
                 });
         });
 
