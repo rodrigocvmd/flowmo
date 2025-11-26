@@ -730,11 +730,19 @@
                     let useCloud = true;
                     if (localDataJSON) {
                         const localData = JSON.parse(localDataJSON);
-                        // Simple conflict resolution: Use cloud if timestamp is newer
-                        if ((localData.lastSaveTimestamp || 0) > (cloudData.lastSaveTimestamp || 0)) {
-                            useCloud = false;
-                            // Propagate local changes to cloud immediately
-                            saveState(true);
+                        
+                        // SMART MERGE STRATEGY:
+                        // If local data has significant accumulated focus time, use timestamp comparison.
+                        // If local data is effectively empty (0 focus seconds), ALWAYS prefer Cloud.
+                        const localHasData = (localData.focusSeconds > 0 || (localData.tasks && localData.tasks.some(t => t.dedicatedTime > 0)));
+
+                        if (localHasData) {
+                            // Only check timestamps if we actually have local progress to lose
+                            if ((localData.lastSaveTimestamp || 0) > (cloudData.lastSaveTimestamp || 0)) {
+                                useCloud = false;
+                                // Propagate local changes to cloud immediately
+                                saveState(true);
+                            }
                         }
                     }
 
@@ -1125,7 +1133,7 @@
             renderWeekGoal();
             updateWeekProgressBar();
             calculateWeekExpectation();
-            saveState(true); // FORCE CLOUD SAVE on reset
+            // Removed automatic saveState(true) to prevent overwriting cloud data on init
         }
 
         function endSessionAndReset(playAlarm = true) {
@@ -1402,7 +1410,7 @@
             }
 
             resetToIdle();
-            saveState();
+            saveState(true); // Explicitly save to cloud on user-confirmed reset
 
             confirmationModal.classList.add('opacity-0');
             setTimeout(() => confirmationModal.classList.add('hidden'), 300);
