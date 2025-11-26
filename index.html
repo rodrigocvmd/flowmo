@@ -140,18 +140,26 @@
             <!-- Controles Iniciais -->
             <div id="idle-controls" class="space-y-6">
 
-                <div class="space-y-2">
-                    <label for="min-focus-hr" class="block text-md text-center font-medium text-gray-300 !mb-5">Tempo de
-                        foco
-                        mínimo
-                        (opcional):</label>
-                    <div class="flex gap-2">
-                        <input type="number" id="min-focus-hr" min="0" max="1" placeholder="Hr"
-                            class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
-                        <input type="number" id="min-focus-min" min="0" max="59" placeholder="Min"
-                            class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+                <div class="space-y-2 relative">
+                    <div id="min-focus-header"
+                        class="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-gray-700">
+                        <span class="text-base font-medium text-gray-300">Tempo de Foco Mínimo</span>
+                        <svg id="min-focus-arrow" class="w-5 h-5 text-gray-400 ml-2 transform transition-transform"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
-                    <div id="focus-projection-display" class="text-center text-sm text-gray-400 mt-2 space-y-1"></div>
+
+                    <div id="min-focus-config" class="hidden space-y-2 bg-gray-900/50 p-3 rounded-lg">
+                        <div class="flex gap-2">
+                            <input type="number" id="min-focus-hr" min="0" max="1" placeholder="Hr"
+                                class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+                            <input type="number" id="min-focus-min" min="0" max="59" placeholder="Min"
+                                class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+                        </div>
+                        <div id="focus-projection-display" class="text-center text-sm text-gray-400 mt-2 space-y-1">
+                        </div>
+                    </div>
                 </div>
                 <button id="start-focus-btn"
                     class="btn w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg">Iniciar
@@ -264,6 +272,107 @@
                                     <input type="text" id="day-fp-return-time" placeholder="hh:mm"
                                         pattern="([0-1][0-9]|2[0-3]):[0-5][0-9]"
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm time-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Modo Semana -->
+                <div id="week-mode-container" class="space-y-4 !mt-8 pt-8 border-t border-gray-700">
+                    <!-- Weekly Progress Bar -->
+                    <div id="week-progress-container" class="space-y-2 hidden">
+                        <div class="flex justify-between items-center text-md font-medium text-gray-300">
+                            <div class="flex items-center gap-1.5">
+                                <span id="week-progress-label">Semana</span>
+                                <span id="week-goal-completed-check" class="hidden text-green-400 font-bold">✓</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-baseline gap-1">
+                                    <span id="week-progress-current"></span>
+                                    <span>/</span>
+                                    <span id="week-progress-goal"></span>
+                                </div>
+                                <button id="edit-week-goal-btn" title="Editar Meta Semanal"
+                                    class="btn bg-gray-700 hover:bg-gray-600 p-1.5 rounded-md hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                        viewBox="0 0 16 16" class="pointer-events-none">
+                                        <path
+                                            d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                        <path fill-rule="evenodd"
+                                            d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5 relative">
+                            <div id="week-progress-bar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%">
+                            </div>
+                            <div id="week-expected-indicator"
+                                class="absolute top-0 h-full w-1.5 bg-gray-300 rounded-full"
+                                style="left: 0%; display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Goal Form -->
+                    <form id="set-week-goal-form" class="space-y-3">
+                        <label class="block text-md font-medium text-gray-300 text-center">Meta Semanal:</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="number" id="week-goal-hr" placeholder="Hr"
+                                class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                min="0">
+                            <input type="number" id="week-goal-min" placeholder="Min"
+                                class="text-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                min="0" max="59">
+                            <button type="submit"
+                                class="btn bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg">Definir</button>
+                        </div>
+                    </form>
+
+                    <!-- Weekly Focus Period Section -->
+                    <div id="week-focus-period-section" class="space-y-2 !mt-4 relative">
+                        <div id="week-focus-period-header-wrapper">
+                            <div id="week-focus-period-header"
+                                class="flex items-center justify-center cursor-pointer p-2 rounded-lg hover:bg-gray-700 opacity-50 pointer-events-none">
+                                <span class="text-base font-medium text-gray-300">Período Semanal</span>
+                                <svg id="week-focus-period-arrow"
+                                    class="w-5 h-5 text-gray-400 ml-2 transform transition-transform" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div id="week-focus-period-config" class="hidden space-y-3 p-3 bg-gray-900/50 rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="week-start-day"
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">De</label>
+                                    <select id="week-start-day"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white text-center">
+                                        <option value="1" selected>Seg</option>
+                                        <option value="2">Ter</option>
+                                        <option value="3">Qua</option>
+                                        <option value="4">Qui</option>
+                                        <option value="5">Sex</option>
+                                        <option value="6">Sab</option>
+                                        <option value="0">Dom</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="week-end-day"
+                                        class="block text-sm font-medium text-gray-300 mb-1 text-center">Até</label>
+                                    <select id="week-end-day"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white text-center">
+                                        <option value="0">Dom</option>
+                                        <option value="1">Seg</option>
+                                        <option value="2">Ter</option>
+                                        <option value="3">Qua</option>
+                                        <option value="4">Qui</option>
+                                        <option value="5" selected>Sex</option>
+                                        <option value="6">Sab</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -418,6 +527,30 @@
         const dayFpBreakTime = document.getElementById('day-fp-break-time');
         const dayFpReturnTime = document.getElementById('day-fp-return-time');
 
+        // --- New References (Week Mode & Min Focus Toggle) ---
+        const minFocusHeader = document.getElementById('min-focus-header');
+        const minFocusArrow = document.getElementById('min-focus-arrow');
+        const minFocusConfig = document.getElementById('min-focus-config');
+
+        const weekModeContainer = document.getElementById('week-mode-container');
+        const weekProgressContainer = document.getElementById('week-progress-container');
+        const weekProgressCurrent = document.getElementById('week-progress-current');
+        const weekProgressGoal = document.getElementById('week-progress-goal');
+        const weekProgressBar = document.getElementById('week-progress-bar');
+        const weekProgressLabel = document.getElementById('week-progress-label');
+        const weekGoalCompletedCheck = document.getElementById('week-goal-completed-check');
+        const setWeekGoalForm = document.getElementById('set-week-goal-form');
+        const weekGoalHrInput = document.getElementById('week-goal-hr');
+        const weekGoalMinInput = document.getElementById('week-goal-min');
+        const editWeekGoalBtn = document.getElementById('edit-week-goal-btn');
+        const weekExpectedIndicator = document.getElementById('week-expected-indicator');
+        const weekFocusPeriodHeader = document.getElementById('week-focus-period-header');
+        const weekFocusPeriodArrow = document.getElementById('week-focus-period-arrow');
+        const weekFocusPeriodConfig = document.getElementById('week-focus-period-config');
+        const weekFocusPeriodHeaderWrapper = document.getElementById('week-focus-period-header-wrapper');
+        const weekStartDaySelect = document.getElementById('week-start-day');
+        const weekEndDaySelect = document.getElementById('week-end-day');
+
         // --- Quick Break Refs ---
         const quickBreakBtn = document.getElementById('quick-break-btn');
         const quickBreakModal = document.getElementById('quick-break-modal');
@@ -453,6 +586,13 @@
             return: ''
         };
 
+        let weekData = {
+            goal: 0,
+            dedicated: 0,
+            startDay: 1,
+            endDay: 5
+        };
+
         // --- Lógica de Áudio ---
         let synth;
         function initializeAudio() {
@@ -461,7 +601,7 @@
 
         // --- Funções de Persistência (LocalStorage) ---
         function saveState() {
-            const appState = { state, appMode, seconds, focusSeconds, minFocusSeconds, isCountdown, tasks, currentTaskId, sessionFocusTime, lastSaveTimestamp: Date.now(), dayFocusPeriodSettings };
+            const appState = { state, appMode, seconds, focusSeconds, minFocusSeconds, isCountdown, tasks, currentTaskId, sessionFocusTime, lastSaveTimestamp: Date.now(), dayFocusPeriodSettings, weekData };
             localStorage.setItem('flowmodoroState_simplified', JSON.stringify(appState));
         }
 
@@ -477,6 +617,7 @@
             appMode = 'day'; // Sempre modo 'day'
 
             dayFocusPeriodSettings = saved.dayFocusPeriodSettings || { start: '', end: '', break: '', return: '' };
+            weekData = saved.weekData || { goal: 0, dedicated: 0, startDay: 1, endDay: 5 };
 
             // ATUALIZADO (Request 2): Helper para formatar o tempo ao carregar
             const formatLoadedTime = (value) => {
@@ -499,8 +640,14 @@
             dayFpBreakTime.value = formatLoadedTime(dayFocusPeriodSettings.break);
             dayFpReturnTime.value = formatLoadedTime(dayFocusPeriodSettings.return);
 
+            // Inicializa inputs da semana
+            weekStartDaySelect.value = weekData.startDay;
+            weekEndDaySelect.value = weekData.endDay;
+
             document.getElementById('day-focus-period-config').classList.add('hidden');
             document.getElementById('day-focus-period-arrow').classList.remove('rotate-180');
+            document.getElementById('week-focus-period-config').classList.add('hidden'); // Hide week config
+            document.getElementById('min-focus-config').classList.add('hidden'); // Hide min focus config
 
             if (saved.state === 'idle' || saved.state === 'paused' || saved.state === 'quick_break_pending' || saved.state === 'quick_breaking') { // Tratar estado pausado como idle ao recarregar
                 resetToIdle();
@@ -539,6 +686,9 @@
 
             // ATUALIZADO (Request 3): Chama o cálculo imediatamente no load
             calculateAndShowExpectedProgress();
+            renderWeekGoal();
+            updateWeekProgressBar();
+            calculateWeekExpectation();
         }
 
         // --- Funções de Cálculo e Formatação ---
@@ -1050,9 +1200,16 @@
             setTimeout(() => confirmationModal.classList.add('hidden'), 300);
         });
         confirmResetBtn.addEventListener('click', () => {
-            tasks = [];
-            localStorage.removeItem('flowmodoroState_simplified');
+            // Archive day progress to week
+            const dayTask = tasks.find(t => t.id === 'day_goal');
+            if (dayTask) {
+                weekData.dedicated += dayTask.dedicatedTime || 0;
+            }
+
+            tasks = []; // Clear daily tasks
             resetToIdle();
+            saveState(); // Save state with updated weekData and cleared tasks
+
             confirmationModal.classList.add('opacity-0');
             setTimeout(() => confirmationModal.classList.add('hidden'), 300);
         });
@@ -1212,6 +1369,191 @@
             // O 'blur' agora formata, salva E recalcula o indicador
             input.addEventListener('blur', formatTimeInputOnBlur);
         });
+
+        // --- Week Mode Logic ---
+        function renderWeekGoal() {
+            const hasGoal = weekData.goal > 0;
+            setWeekGoalForm.style.display = hasGoal ? 'none' : 'block';
+            weekProgressContainer.style.display = hasGoal ? 'block' : 'none';
+
+            if (hasGoal) {
+                editWeekGoalBtn.classList.remove('hidden');
+                weekFocusPeriodHeader.style.pointerEvents = 'auto';
+                weekFocusPeriodHeader.style.opacity = '1';
+                weekFocusPeriodHeaderWrapper.classList.remove('show-tooltip-on-hover');
+            } else {
+                editWeekGoalBtn.classList.add('hidden');
+                weekFocusPeriodHeader.style.pointerEvents = 'none';
+                weekFocusPeriodHeader.style.opacity = '0.5';
+                weekFocusPeriodConfig.classList.add('hidden');
+                weekFocusPeriodArrow.classList.remove('rotate-180');
+                weekFocusPeriodHeaderWrapper.classList.add('show-tooltip-on-hover');
+            }
+        }
+
+        function updateWeekProgressBar() {
+            if (weekData.goal <= 0) return;
+
+            let currentTotalDedicated = weekData.dedicated;
+
+            // Add current day's progress if it exists (since it's not archived yet)
+            const dayTask = tasks.find(t => t.id === 'day_goal');
+            if (dayTask) {
+                currentTotalDedicated += dayTask.dedicatedTime;
+            }
+
+            if (state === 'focusing') {
+                currentTotalDedicated += focusSeconds + calculateRestTime(focusSeconds);
+            }
+
+            const percentage = Math.min((currentTotalDedicated / (weekData.goal * 60)) * 100, 100);
+
+            weekProgressBar.style.width = `${percentage}%`;
+            weekProgressCurrent.textContent = formatTime(currentTotalDedicated);
+            weekProgressGoal.textContent = formatTime(weekData.goal * 60);
+
+            if (currentTotalDedicated >= (weekData.goal * 60)) {
+                weekProgressLabel.classList.add('line-through');
+                weekGoalCompletedCheck.classList.remove('hidden');
+                weekProgressGoal.classList.add('line-through');
+            } else {
+                weekProgressLabel.classList.remove('line-through');
+                weekGoalCompletedCheck.classList.add('hidden');
+                weekProgressGoal.classList.remove('line-through');
+            }
+        }
+
+        function calculateWeekExpectation() {
+            if (weekData.goal <= 0 || !dayFocusPeriodSettings.start || !dayFocusPeriodSettings.end) {
+                weekExpectedIndicator.style.display = 'none';
+                return;
+            }
+
+            const now = new Date();
+            const currentDay = now.getDay(); // 0-6
+            const startDay = parseInt(weekData.startDay);
+            const endDay = parseInt(weekData.endDay);
+
+            const parseTime = (timeStr) => {
+                if (!timeStr) return null;
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                if (isNaN(hours) || isNaN(minutes)) return null;
+                return { h: hours, m: minutes };
+            };
+            const tStart = parseTime(dayFocusPeriodSettings.start);
+            const tEnd = parseTime(dayFocusPeriodSettings.end);
+            const tBreak = parseTime(dayFocusPeriodSettings.break);
+            const tReturn = parseTime(dayFocusPeriodSettings.return);
+
+            if (!tStart || !tEnd) return;
+
+            const getDailyMinutes = () => {
+                let startM = tStart.h * 60 + tStart.m;
+                let endM = tEnd.h * 60 + tEnd.m;
+                let total = endM - startM;
+
+                if (tBreak && tReturn) {
+                    let breakM = tBreak.h * 60 + tBreak.m;
+                    let returnM = tReturn.h * 60 + tReturn.m;
+                    if (returnM > breakM) {
+                        total -= (returnM - breakM);
+                    }
+                }
+                return Math.max(0, total);
+            };
+
+            const dailyMinutes = getDailyMinutes();
+            let totalWeeklyExpectedMinutes = 0;
+            let elapsedWeeklyExpectedMinutes = 0;
+
+            const isDayInWeek = (d) => {
+                if (startDay <= endDay) return d >= startDay && d <= endDay;
+                return d >= startDay || d <= endDay;
+            };
+
+            for (let d = 0; d <= 6; d++) {
+                if (isDayInWeek(d)) {
+                    totalWeeklyExpectedMinutes += dailyMinutes;
+
+                    if (d < currentDay) {
+                        elapsedWeeklyExpectedMinutes += dailyMinutes;
+                    } else if (d === currentDay) {
+                        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                        const startMinutes = tStart.h * 60 + tStart.m;
+                        const endMinutes = tEnd.h * 60 + tEnd.m;
+
+                        if (nowMinutes >= endMinutes) {
+                            elapsedWeeklyExpectedMinutes += dailyMinutes;
+                        } else if (nowMinutes > startMinutes) {
+                            let activeMinutes = nowMinutes - startMinutes;
+                            if (tBreak && tReturn) {
+                                let breakM = tBreak.h * 60 + tBreak.m;
+                                let returnM = tReturn.h * 60 + tReturn.m;
+                                if (nowMinutes > tReturn) {
+                                    activeMinutes -= (returnM - breakM);
+                                } else if (nowMinutes > breakM) {
+                                    activeMinutes = breakM - startMinutes;
+                                }
+                            }
+                            elapsedWeeklyExpectedMinutes += activeMinutes;
+                        }
+                    }
+                }
+            }
+
+            if (totalWeeklyExpectedMinutes === 0) {
+                weekExpectedIndicator.style.display = 'none';
+                return;
+            }
+
+            const percentage = Math.min((elapsedWeeklyExpectedMinutes / totalWeeklyExpectedMinutes) * 100, 100);
+            weekExpectedIndicator.style.left = `${percentage}%`;
+            weekExpectedIndicator.style.display = 'block';
+        }
+
+        // --- Listeners ---
+        minFocusHeader.addEventListener('click', () => {
+            minFocusConfig.classList.toggle('hidden');
+            minFocusArrow.classList.toggle('rotate-180');
+        });
+
+        weekFocusPeriodHeader.addEventListener('click', () => {
+            weekFocusPeriodConfig.classList.toggle('hidden');
+            weekFocusPeriodArrow.classList.toggle('rotate-180');
+        });
+
+        setWeekGoalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const hr = parseInt(weekGoalHrInput.value, 10) || 0;
+            const min = parseInt(weekGoalMinInput.value, 10) || 0;
+            weekData.goal = (hr * 60) + min;
+            weekGoalHrInput.value = '';
+            weekGoalMinInput.value = '';
+            saveState();
+            renderWeekGoal();
+            updateWeekProgressBar();
+            calculateWeekExpectation();
+        });
+
+        editWeekGoalBtn.addEventListener('click', () => {
+            setWeekGoalForm.style.display = 'block';
+            weekGoalHrInput.focus();
+        });
+
+        weekStartDaySelect.addEventListener('change', (e) => {
+            weekData.startDay = parseInt(e.target.value);
+            saveState();
+            calculateWeekExpectation();
+        });
+
+        weekEndDaySelect.addEventListener('change', (e) => {
+            weekData.endDay = parseInt(e.target.value);
+            saveState();
+            calculateWeekExpectation();
+        });
+
+        setInterval(calculateWeekExpectation, 60000);
+        setInterval(updateWeekProgressBar, 1000);
 
         // --- Inicialização ---
         loadState();
